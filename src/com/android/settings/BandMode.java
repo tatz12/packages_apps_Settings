@@ -157,7 +157,7 @@ public class BandMode extends Activity {
 
             int size = bands[0];
 
-            if (size > 0) {
+            /*if (size > 0) {
                 mBandListAdapter.add(
                         new BandListItem(Phone.BM_UNSPECIFIED)); //Always include AUTOMATIC
                 for (int i=1; i<=size; i++) {
@@ -169,7 +169,7 @@ public class BandMode extends Activity {
                     if (DBG) log("Add " + item.toString());
                 }
                 addBandSuccess = true;
-            }
+            }*/
         }
 
         if (addBandSuccess == false) {
