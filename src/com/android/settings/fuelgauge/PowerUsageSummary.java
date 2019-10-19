@@ -38,7 +38,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnLongClickListener;
 import android.widget.TextView;
-import androidx.preference.Preference;
+import androidx.preference.*;
 
 import androidx.annotation.VisibleForTesting;
 import androidx.loader.app.LoaderManager;
@@ -60,6 +60,8 @@ import com.android.settingslib.utils.PowerUtil;
 import com.android.settingslib.utils.StringUtil;
 import com.android.settingslib.widget.LayoutPreference;
 
+import com.evolution.settings.preference.SystemSettingMasterSwitchPreference;
+
 import java.util.Collections;
 import java.util.List;
 
@@ -69,7 +71,7 @@ import java.util.List;
  */
 @SearchIndexable(forTarget = SearchIndexable.ALL & ~SearchIndexable.ARC)
 public class PowerUsageSummary extends PowerUsageBase implements OnLongClickListener,
-        BatteryTipPreferenceController.BatteryTipListener {
+        BatteryTipPreferenceController.BatteryTipListener, Preference.OnPreferenceChangeListener {
 
     static final String TAG = "PowerUsageSummary";
 
@@ -80,7 +82,9 @@ public class PowerUsageSummary extends PowerUsageBase implements OnLongClickList
     private static final String KEY_TIME_SINCE_LAST_FULL_CHARGE = "last_full_charge";
     private static final String KEY_BATTERY_SAVER_SUMMARY = "battery_saver_summary";
     private static final String KEY_BATTERY_TEMP = "battery_temp";
-    private static final String KEY_SMART_CHARGING = "smart_charging_key";
+    private static final String SMART_CHARGING = "smart_charging";
+
+    private SystemSettingMasterSwitchPreference mSmartCharging;
 
     @VisibleForTesting
     static final int BATTERY_INFO_LOADER = 1;
@@ -247,10 +251,24 @@ public class PowerUsageSummary extends PowerUsageBase implements OnLongClickList
         updateBatteryTipFlag(icicle);
 
         // Check availability of Smart Charging
-        Preference mSmartChargingPref = (Preference) findPreference(KEY_SMART_CHARGING);
+        mSmartCharging = (SystemSettingMasterSwitchPreference) findPreference(SMART_CHARGING);
         if (!getResources().getBoolean(R.bool.config_supportSmartCharging)) {
-            getPreferenceScreen().removePreference(mSmartChargingPref);
+            getPreferenceScreen().removePreference(mSmartCharging);
         }
+        mSmartCharging.setChecked((Settings.System.getInt(getActivity().getContentResolver(),
+                Settings.System.SMART_CHARGING, 0) == 1));
+        mSmartCharging.setOnPreferenceChangeListener(this);
+    }
+
+    @Override
+    public boolean onPreferenceChange(Preference preference, Object newValue) {
+        if (preference == mSmartCharging) {
+            boolean value = (Boolean) newValue;
+            Settings.System.putInt(getActivity().getContentResolver(),
+                    Settings.System.SMART_CHARGING, value ? 1 : 0);
+            return true;
+        }
+        return false;
     }
 
     @Override
